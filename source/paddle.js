@@ -425,11 +425,10 @@ paddle.Tensor = class {
     constructor(type, buffer) {
         this._type = type;
         if (buffer && buffer.length > 20 && buffer.slice(0, 16).every((value) => value === 0x00)) {
-            const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-            const length = view.getUint32(16, true);
-            // const header = buffer.slice(20, 20 + length);
-            // const reader = protobuf.Reader.create(header);
-            // const tensorDesc = paddle.proto.VarType.TensorDesc.decode(reader);
+            const length = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength).getUint32(16, true);
+            const reader = protobuf.Reader.create(buffer.slice(20, 20 + length));
+            const tensorDesc = paddle.proto.VarType.TensorDesc.decode(reader);
+            this._type = new paddle.TensorType(tensorDesc);
             this._data = buffer.slice(20 + length);
         }
     }
